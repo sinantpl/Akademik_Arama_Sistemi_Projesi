@@ -1,0 +1,876 @@
+
+<style>
+    
+    .cf:before, .cf:after {content:"";display:table;}.cf:after{clear:both;}.cf{zoom:1;}
+.form-wrapper {background: #444;background: rgba(0,0,0,.2);border-radius: 10px;margin: 20px auto 50px auto;padding: 15px;width: 450px;}
+.form-wrapper input {background: #eee;border-radius: 3px 0 0 3px;border: 0;float: left;font: bold 15px 'lucida sans', 'trebuchet MS', 'Tahoma';height: 20px;padding: 20px 5px;width: 330px;}
+.form-wrapper input:focus {background: #fff;box-shadow: 0 0 2px rgba(0,0,0,.8) inset;outline: 0;}
+.form-wrapper input::-webkit-input-placeholder {color: #999;font-style: italic;font-weight: normal;}
+.form-wrapper input:-moz-placeholder {color: #999;font-style: italic;font-weight: normal;}
+.form-wrapper input:-ms-input-placeholder {color: #999;font-style: italic;font-weight: normal;}
+.form-wrapper button {background: #d83c3c;border-radius: 0 3px 3px 0;border: 0;color: #fff;cursor: pointer;float: right;font: bold 15px/40px 'lucida sans', 'trebuchet MS', 'Tahoma';height: 40px;overflow: visible;padding: 0;position: relative;text-shadow: 0 -1px 0 rgba(0, 0 ,0, .3);text-transform: uppercase;width: 110px;}
+.form-wrapper button:hover{background: #e54040;}
+.form-wrapper button:active,.form-wrapper button:focus{background: #c42f2f;outline: 0;}
+.form-wrapper button:before {content: '';border-color: transparent #d83c3c transparent;border-style: solid solid solid none;    border-width: 8px 8px 8px 0;left: -6px;position: absolute;top: 12px;}
+.form-wrapper button:hover:before{border-right-color: #e54040;}
+.form-wrapper button:focus:before,
+.form-wrapper button:active:before{border-right-color: #c42f2f;}
+.form-wrapper button::-moz-focus-inner {border: 0;padding: 0;}
+h2 {
+  margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+div{
+   
+}
+</style>
+<html>
+    <head>
+    <title>Search</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h2> Akademik Arama Sistemi</h2>
+    
+<form class="form-wrapper cf">
+    <input id="ara" type="text" placeholder="Akademisyen Adı Giriniz" required>
+    <button type="submit" id="arama">ARA</button>
+    
+</form>
+    <form class="form-wrapper cf">
+    <input id="ara" type="text" placeholder="Yayin Adı Giriniz" required>
+    <button type="submit" id="arama">ARA</button>
+    
+</form>
+    <form class="form-wrapper cf">
+    <input id="ara" type="text" placeholder="Yayin Turu Giriniz" required>
+    <button type="submit" id="arama">ARA</button>
+    
+</form>
+    
+    
+    <script>
+        var btn1=document.querySelector("arama");
+	
+		var name=document.getElementById("ara").value;
+                
+                (async() => {
+ const neo4j = require('neo4j-driver');
+ 
+ const uri = 'neo4j+s://47ca145f.databases.neo4j.io:7687';
+ const user = 'neo4j';
+ const password = 'sj3hxqatqXmu_HJXNDD2aeJAv90YQkEaTK2idPQUUFE';
+ 
+ const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+ const session = driver.session();
+
+ const person1Name = 'Alice';
+ const person2Name = 'David';
+
+ try {
+   // To learn more about the Cypher syntax, see https://neo4j.com/docs/cypher-manual/current/
+   // The Reference Card is also a good resource for keywords https://neo4j.com/docs/cypher-refcard/current/
+   const writeQuery = `MERGE (p1:Person { name: $person1Name })
+                       MERGE (p2:Person { name: $person2Name })
+                       MERGE (p1)-[:KNOWS]->(p2)
+                       RETURN p1, p2`;
+
+   // Write transactions allow the driver to handle retries and transient errors
+   const writeResult = await session.writeTransaction(tx =>
+     tx.run(writeQuery, { person1Name, person2Name })
+   );
+   writeResult.records.forEach(record => {
+     const person1Node = record.get('p1');
+     const person2Node = record.get('p2');
+     console.log(
+       `Created friendship between: ${person1Node.properties.name}, ${person2Node.properties.name}`
+     );
+   });
+
+   const readQuery = `MATCH (p:Arastirmacilar)
+                      WHERE p.ArastirmaciAdi = '`+name+`''
+                      RETURN p.ArastirmaciAdi,p.YayinAdi,p.YayinYeri`;
+   const readResult = await session.readTransaction(tx =>
+     tx.run(readQuery, { personName: person1Name })
+   );
+   readResult.records.forEach(record => {
+     console.log(`Found person: ${record.get('name')}`);
+   });
+ } catch (error) {
+   console.error('Something went wrong: ', error);
+ } finally {
+   await session.close();
+ }
+
+ // Don't forget to close the driver connection when you're finished with it
+ await driver.close();
+})();
+
+        
+  
+
+
+    </script>
+</body>
+</html>
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Akademisyenler</title>
+<style>
+#akademisyen {
+border-collapse: collapse;
+width: 100%;
+}
+ 
+#akademisyen td, #akademisyen th {
+border: 1px solid #ddd;
+padding: 8px;
+}
+ 
+#akademisyen tr:nth-child(even){background-color: #f2f2f2;}
+ 
+#akademisyen tr:hover {
+background-color: #2ecc71;
+color:#fff;
+}
+ 
+#akademisyen th {
+padding-top: 12px;
+padding-bottom: 12px;
+text-align: left;
+background-color: #2c3e50;
+color: white;
+}
+h2 {
+  margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+</style>
+</head>
+ 
+<body>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,300" rel="stylesheet">
+    <h2>AKADEMİSYENLER</h2>
+<table id="akademisyen">
+<tr>
+<th>Arastirmaci Adi</th>
+<th>Arastirmaci Soyadi</th>
+</tr>
+<tr>
+    <td><a href="a1.html" target="_blank">Alev</a></td>
+    <td><a href="a1.html" target="_blank">Mutlu</a></td>
+</tr>
+<tr>
+<tr>
+    <td><a href="a2.html" target="_blank">Adnan</a></td>
+<td><a href="a2.html" target="_blank">Kavak</a></td>
+</tr>
+<tr>
+<td><a href="a3.html" target="_blank">Yasar</a></td>
+<td><a href="a3.html" target="_blank">Becerikli</a></td>
+</tr>
+</table>
+</body>
+</html>
+
+<style>
+
+
+body {
+  box-sizing: border-box;
+  font-family: Lato, Arial;
+  text-align: center;
+  color: #eee;
+  background-color: #000;
+
+}
+
+h2 {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  color: #eee;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+
+h4 {
+  margin-top: 1em;
+  color: #eee;
+  font-size: 150%;
+  font-weight: 300;
+  text-align: center;
+}
+
+button {
+  background: #01A4E0;
+  color: #2184AC;
+  border: 0;
+  padding: 4px;
+  
+}
+
+input {
+    display: block;
+    width: 98%;
+  height: 30px; 
+    margin-top: 1.0em;
+   padding: 4px;
+}
+
+small {
+  display: inline-block;
+  margin-top: 5px;
+  color: white;
+  font-size: 100%;
+  color: #fff;
+}
+
+.login-box {
+    padding: 1em 1em 1em 1em;
+    margin: auto;
+    text-align: center;
+    display: block;
+    background-color: #6f92dc;
+    /*border: 1px dashed white;*/
+    width: 60%;
+  height: auto;
+}
+
+.outer-box {
+    display: block;
+    margin: auto;
+    background: #6f92dc;
+    border-radius: 5px;
+    width: 50%;
+    height: 20em;
+  height: auto;
+}
+
+#btn-login {
+  width: 100%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #3366cc;
+  color: #fff;
+  
+}
+
+#btn-forgot {
+  display: block;
+  width: 100%;
+  margin-top: 1.0em;
+  border-radius: 2px;
+  color: #fff;
+  background-color: #000D36;
+}
+</style>
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>LogIn</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <h2>LOG IN</h2>
+  <div class="outer-box">
+    <div class="login-box">
+      <center>
+      <input placeholder="Username" id="usname">
+      <input type="password" placeholder="Password" id="pswrd">
+      <button id="btn-login" type="submit">Log In</button>
+      </center>
+    </div>
+  </div>
+        <script>
+var btn=document.querySelector("#btn-login");
+	btn.onclick=function(){
+		var uname=document.getElementById("usname").value;
+                var pass=document.getElementById("pswrd").value;
+        if(uname=="admin" && pass=="admin" ){
+            window.location.href="admin.html";
+        }else{
+            window.alert("Username or Password is not true")
+        }
+	}
+        
+</script>
+<small>Copyright 2022 Mertcan Kuscu - Sinan Topal</small>
+        
+    </body>
+</html>
+
+<style>
+    button {
+  background: #99CCCC;
+  color: #2184AC;
+  border: 0;
+  padding: 4px;
+   width: 60%;
+  height: 70px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #99CCCC;
+  color: #fff;
+  text-align: center;
+  margin-left: 300px
+}
+h2{
+    margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+</style>
+<html>
+    <head>
+        <title>Welcome</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <h2>WELCOME</h2>
+        <button type="submit" id="admin">ADMIN</button>
+        <button type="submit" id="user">USER</button>
+        <script>
+var btn=document.querySelector("#admin");
+	btn.onclick=function(){
+		window.location.href="login.html";
+	}
+        var btnu=document.querySelector("#user");
+	btnu.onclick=function(){
+		window.location.href="user.html";
+	}
+</script>
+    </body>
+</html>
+
+<style>
+
+
+body {
+  box-sizing: border-box;
+  font-family: Lato, Arial;
+  text-align: center;
+  color: #eee;
+  background-color: #000;
+
+}
+
+h2 {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  color: #eee;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+
+h4 {
+  margin-top: 1em;
+  color: #eee;
+  font-size: 150%;
+  font-weight: 300;
+  text-align: center;
+}
+
+button {
+  background: #01A4E0;
+  color: #2184AC;
+  border: 0;
+  padding: 4px;
+  
+}
+
+input {
+    display: block;
+    width: 98%;
+  height: 30px; 
+    margin-top: 1.0em;
+   padding: 4px;
+}
+
+small {
+  display: inline-block;
+  margin-top: 5px;
+  color: white;
+  font-size: 100%;
+  color: #fff;
+}
+
+.login-box {
+    padding: 1em 1em 1em 1em;
+    margin: auto;
+    text-align: center;
+    display: block;
+    background-color: #6f92dc;
+    /*border: 1px dashed white;*/
+    width: 60%;
+  height: auto;
+  margin-top: 100px;
+}
+
+.outer-box {
+    display: block;
+    margin: auto;
+    background: #6f92dc;
+    border-radius: 5px;
+    width: 50%;
+    height: 20em;
+  height: auto;
+}
+
+#btn-login {
+  width: 100%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #3366cc;
+  color: #fff;
+  
+}
+
+#btn1-login {
+  width: 100%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #3366cc;
+  color: #fff;
+  
+}
+
+#btn-forgot {
+  display: block;
+  width: 100%;
+  margin-top: 1.0em;
+  border-radius: 2px;
+  color: #fff;
+  background-color: #000D36;
+}
+
+
+
+</style>
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Admin</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <h2>Arastirmaci Ekleme Ekrani</h2>
+  <div class="outer-box">
+    <div class="login-box">
+      <center>
+      <input placeholder="Arastirmaci Adi" id="name">
+      <input placeholder="Arastirmaci Soyadi" id="surname">
+      <input placeholder="Yayin Adi" id="yayinadi">
+      <input placeholder="Yayin Yeri" id="yayinyeri">
+      <input placeholder="Yayin Yili" id="yayinyili">
+      <input placeholder="Yayin Turu" id="yayinturu">
+      <button id="btn-login" type="submit" >Akademisyenler</button>
+      <button id="btn1-login" type="submit">Submit</button>
+      
+      </center>
+    </div>
+  </div>
+        <script>
+var btn=document.querySelector("#btn-login");
+var btn1=document.querySelector("#btn1-login");
+	btn.onclick=function(){
+		window.location.href="tablo.html";
+	}
+         btn1.onclick=function(){
+		window.alert("Maalesef Kayıt Oluşturulamadı...")
+	}
+</script>
+<small>Copyright 2022 Mertcan Kuscu - Sinan Topal</small>
+        
+    </body>
+</html>
+
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Yasar Becerikli</title>
+<style>
+#akademisyen {
+border-collapse: collapse;
+width: 100%;
+}
+ 
+#akademisyen td, #akademisyen th {
+border: 1px solid #ddd;
+padding: 8px;
+}
+ 
+#akademisyen tr:nth-child(even){background-color: #f2f2f2;}
+ 
+#akademisyen tr:hover {
+background-color: #2ecc71;
+color:#fff;
+}
+ 
+#akademisyen th {
+padding-top: 12px;
+padding-bottom: 12px;
+text-align: left;
+background-color: #2c3e50;
+color: white;
+}
+h2 {
+  margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+#btn-login {
+  width: 50%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #add8e6;
+  color: #191970;
+  margin-left: 400px;
+  text-align: center;
+  
+}
+</style>
+</head>
+ 
+<body>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,300" rel="stylesheet">
+    <h2>YAŞAR BECERİKLİ</h2>
+<table id="akademisyen">
+<tr>
+<th>Yayin Adi</th>
+<th>Yayin Yeri</th>
+<th>Yayin Yili</th>
+<th>Yayin Turu</th>
+</tr>
+<tr>
+<td>Real Time Driver Fatigue Detection System Based on Multi-Task ConNN</td>
+<td>IEEE Access</td>
+<td>2020</td>
+<td>Makale</td>
+</tr>
+<tr>
+<tr>
+<td>Scrum Yöntemi İle Oyun Programlama Ve Süre Tahmini</td>
+<td>Türkiye Bilişim Vakfı Bilgisayar Bilimleri ve Mühendisliği Dergisi</td>
+<td>2021</td>
+<td>Makale</td>
+</tr>
+</table>
+    <button type="submit" id="btn-login">Birlikte Çalıştığı Kişiler</button>
+    <script>
+var btn=document.querySelector("#btn-login");
+	btn.onclick=function(){
+		window.location.href="tablo.html";
+	}
+        
+</script>
+</body>
+</html>
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Adnan Kavak</title>
+<style>
+#akademisyen {
+border-collapse: collapse;
+width: 100%;
+}
+ 
+#akademisyen td, #akademisyen th {
+border: 1px solid #ddd;
+padding: 8px;
+}
+ 
+#akademisyen tr:nth-child(even){background-color: #f2f2f2;}
+ 
+#akademisyen tr:hover {
+background-color: #2ecc71;
+color:#fff;
+}
+ 
+#akademisyen th {
+padding-top: 12px;
+padding-bottom: 12px;
+text-align: left;
+background-color: #2c3e50;
+color: white;
+}
+h2 {
+  margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+#btn-login {
+  width: 50%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #add8e6;
+  color: #191970;
+  margin-left: 400px;
+  text-align: center;
+  
+}
+</style>
+</head>
+ 
+<body>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,300" rel="stylesheet">
+    <h2>ADNAN KAVAK</h2>
+<table id="akademisyen">
+<tr>
+<th>Yayin Adi</th>
+<th>Yayin Yeri</th>
+<th>Yayin Yili</th>
+<th>Yayin Turu</th>
+</tr>
+<tr>
+<td>Smart Antenna Systems and Wireless LANs</td>
+<td>Kluwer Academic Publisher</td>
+<td>1998</td>
+<td>Bilimsel Kitap</td>
+</tr>
+<tr>
+<tr>
+<td>Mathematical Methods in Engineering: Implementation of Floating Point Arithmetics Using an FPGA</td>
+<td>Springer</td>
+<td>2007</td>
+<td>Bilimsel Kitap</td>
+</tr>
+</table>
+    <button type="submit" id="btn-login">Birlikte Çalıştığı Kişiler</button>
+    <script>
+var btn=document.querySelector("#btn-login");
+	btn.onclick=function(){
+		window.location.href="tablo.html";
+	}
+        
+</script>
+</body>
+</html>
+
+
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Alev Mutlu</title>
+<style>
+#akademisyen {
+border-collapse: collapse;
+width: 100%;
+}
+ 
+#akademisyen td, #akademisyen th {
+border: 1px solid #ddd;
+padding: 8px;
+}
+ 
+#akademisyen tr:nth-child(even){background-color: #f2f2f2;}
+ 
+#akademisyen tr:hover {
+background-color: #2ecc71;
+color:#fff;
+}
+ 
+#akademisyen th {
+padding-top: 12px;
+padding-bottom: 12px;
+text-align: left;
+background-color: #2c3e50;
+color: white;
+}
+h2 {
+  margin-top: 100px;
+  margin-bottom: 1em;
+  color: #5f9ea0;
+  font-weight: 400;
+  text-align: center;
+  font-size: 200%;
+  letter-spacing: 4px;
+}
+#btn-login {
+  width: 50%;
+  height: 40px;
+  margin-top: 2.0em;
+  border-radius: 4px;
+  background-color: #add8e6;
+  color: #191970;
+  margin-left: 400px;
+  text-align: center;
+  
+}
+</style>
+</head>
+ 
+<body>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,300" rel="stylesheet">
+    <h2>ALEV MUTLU</h2>
+<table id="akademisyen">
+<tr>
+<th>Yayin Adi</th>
+<th>Yayin Yeri</th>
+<th>Yayin Yili</th>
+<th>Yayin Turu</th>
+</tr>
+<tr>
+<td>Digital Technology Advancements in Knowledge Management</td>
+<td>IGI Global</td>
+<td>2021</td>
+<td>Bilimsel Kitap</td>
+</tr>
+<tr>
+<tr>
+<td>Encyclopedia of Information Science and Technology, Fourth Edition</td>
+<td>IGI Global</td>
+<td>2018</td>
+<td>Bilimsel Kitap</td>
+</tr>
+</table>
+    <button type="submit" id="btn-login">Birlikte Çalıştığı Kişiler</button>
+    <script>
+var btn=document.querySelector("#btn-login");
+	btn.onclick=function(){
+		window.location.href="tablo.html";
+	}
+        
+</script>
+</body>
+</html>
+
+import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.exceptions.Neo4jException;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.neo4j.driver.Config.TrustStrategy.trustAllCertificates;
+
+public class neo implements AutoCloseable {
+    private static final Logger LOGGER = Logger.getLogger(neo.class.getName());
+    private final Driver driver;
+
+    public neo(String uri, String user, String password, Config config) {
+        // The driver is a long living object and should be opened during the start of your application
+        driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password), config);
+    }
+    
+    @Override
+    public void close() throws Exception {
+        // The driver object should be closed before the application ends.
+        driver.close();
+    }
+
+    public void createFriendship(final String person1Name, final String person2Name) {
+        // To learn more about the Cypher syntax, see https://neo4j.com/docs/cypher-manual/current/
+        // The Reference Card is also a good resource for keywords https://neo4j.com/docs/cypher-refcard/current/
+        String createFriendshipQuery = "CREATE (p1:Person { name: $person1_name })\n" +
+                "CREATE (p2:Person { name: $person2_name })\n" +
+                "CREATE (p1)-[:KNOWS]->(p2)\n" +
+                "RETURN p1, p2";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("person1_name", person1Name);
+        params.put("person2_name", person2Name);
+
+        try (Session session = driver.session()) {
+            // Write transactions allow the driver to handle retries and transient errors
+            Record record = session.writeTransaction(tx -> {
+                Result result = tx.run(createFriendshipQuery, params);
+                return result.single();
+            });
+            System.out.println(String.format("Created friendship between: %s, %s",
+                    record.get("p1").get("name").asString(),
+                    record.get("p2").get("name").asString()));
+        // You should capture any errors along with the query and data for traceability
+        } catch (Neo4jException ex) {
+            LOGGER.log(Level.SEVERE, createFriendshipQuery + " raised an exception", ex);
+            throw ex;
+        }
+    }
+
+    public void findPerson(final String personName) {
+        String readPersonByNameQuery = "MATCH (p:Arastirmacilar) WHERE p.ArastirmaciAdi ='Sinan' RETURN p.ArastirmaciAdi AS name";
+
+        Map<String, Object> params = Collections.singletonMap("ArastirmaciAdi", personName);
+
+        try (Session session = driver.session()) {
+            Record record = session.readTransaction(tx -> {
+                Result result = tx.run(readPersonByNameQuery, params);
+                return result.single();
+            });
+            System.out.println(String.format("Found person: %s", record.get("name").asString()));
+        // You should capture any errors along with the query and data for traceability
+        } catch (Neo4jException ex) {
+            LOGGER.log(Level.SEVERE, readPersonByNameQuery + " raised an exception", ex);
+            throw ex;
+        }
+    }
+
+    public static void main(String... args) throws Exception {
+        // Aura queries use an encrypted connection using the "neo4j+s" protocol
+        String uri = "neo4j+s://47ca145f.databases.neo4j.io:7687";
+        
+        String user = "neo4j";
+        String password = "sj3hxqatqXmu_HJXNDD2aeJAv90YQkEaTK2idPQUUFE";
+
+        try (neo app = new neo(uri, user, password, Config.defaultConfig())) {
+            //app.createFriendship("Alice", "David");
+            app.findPerson("Sinan");
+        }
+    }
+}
